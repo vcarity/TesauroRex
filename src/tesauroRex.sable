@@ -10,12 +10,23 @@ Package tesauroRex;
 
 Helpers
 
-lowercase  = ['a' .. 'z'];
-uppercase  = ['A' .. 'Z'];
+lowercase = ['a' .. 'z'];
+uppercase = ['A' .. 'Z'];
 underscore = '_';
+letter = lowercase | uppercase;
+ascii = [0 .. 0xff];
+nul = '\0';
+bel = '\a';
+bs = '\b';
+ht = '\t';
+np = '\f';
+nl = '\n';
+cr = '\r';
+apostrophe = ''';
+ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
 
-letter     = lowercase | uppercase;
 
 Tokens
 
 identifier = letter+ ( letter+ | underscore )+;
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
