@@ -1,22 +1,21 @@
-Package tesauroRex ;
+/*
+* Projeto da Disciplina Compiladores 2018.2
+* Alunos: Gabriel Leite, Rafael Sena e Victor Carity
+* TESAURO REX, RAWWWR!!
+* verificar gramática -> http://sablecc.sourceforge.net/grammars
+*
+*/
+
+Package tesauroRex;
 
 Helpers
-  digito = ['0' .. '9'];
-  espaco = ' ';
-  rc = 13;
-  nl = 10;
- 
+
+lowercase  = ['a' .. 'z'];
+uppercase  = ['A' .. 'Z'];
+underscore = '_';
+
+letter     = lowercase | uppercase;
+
 Tokens
-  number = digito+;
-  plus = '+';
-  minus = '-';
-  mult = '*';
-  div = '/';
-  mod = '%';
-  l_par = '(';
-  r_par = ')';
-  blank = (espaco | rc | nl)+;
 
-
-Ignored Tokens
-  blank;
+identifier = letter+ ( letter+ | underscore )+;
