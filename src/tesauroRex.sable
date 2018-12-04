@@ -37,7 +37,7 @@ rbracket = ']';
 
 Tokens
 
-assign = '<-';
+assign = ':=';
 
 end = ';'*;
 plus = '+';

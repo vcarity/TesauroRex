@@ -1,4 +1,6 @@
 {Tesauro Rex 1}
+code TR
+
 start
 
 integer integerA;
@@ -17,29 +19,29 @@ integer vector [][] vectorA;
 real vector [][] vectorB;
 symbol vector [][] vectorC;
 
-integerA <- d1;
-integerB <- d10;
-integerC <- b0101;
+integerA := d1;
+integerB := d10;
+integerC := b0101;
 
-realA <- 1.1;
-realB <- 22.22;
-realC <- 333.444;
+realA := 1.1;
+realB := 22.22;
+realC := 333.444;
 
-symbolA <- 'a';
-symbolB <- 'b';
-symbolC <- 'c';
+symbolA := 'a';
+symbolB := 'b';
+symbolC := 'c';
 
-integerA <- integerB + integerC;
-integerA <- integerB - integerC;
-integerA <- integerB * integerC;
-integerA <- integerB / integerC;
-integerA <- integerB = integerC;
-integerA <- integerB != integerC;
+integerA := integerB + integerC;
+integerA := integerB - integerC;
+integerA := integerB * integerC;
+integerA := integerB / integerC;
+integerA := integerB = integerC;
+integerA := integerB != integerC;
 
-realA <- realB + realC;
-realA <- realB - realC;
-realA <- realB * realC;
-realA <- realB / realC;
-realA <- (realB * realC) - realC;
+realA := realB + realC;
+realA := realB - realC;
+realA := realB * realC;
+realA := realB / realC;
+realA := (realB * realC) - realC;
 
 finish
