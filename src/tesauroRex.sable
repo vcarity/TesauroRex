@@ -15,7 +15,6 @@ lowercase = ['a' .. 'z'];
 uppercase = ['A' .. 'Z'];
 underscore = '_';
 dot = '.';
-end = ';';
 letter = lowercase | uppercase;
 ascii = [0 .. 0xff];
 nul = '\0';
@@ -38,6 +37,9 @@ rbracket = ']';
 
 Tokens
 
+assign = '<-';
+
+end = ';'*;
 plus = '+';
 minus = '-';
 mult = '*';
@@ -58,8 +60,8 @@ real = number+ dot number+;
 integer = binary | decimal;
 array = ( ( ('symbol vector ') | ('real vector ') | ('integer vector ') ) (lbracket number* rbracket)+ (' ') ( letter ( letter+ | underscore )*) );
 
-blank = ( ' ' | cr | nl )+;
-comment = ( '{' ( ascii* | letter* ) '}' );
+blank = ( ' ' | 13 | 10)+;
+comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
 
 Ignored Tokens
 
