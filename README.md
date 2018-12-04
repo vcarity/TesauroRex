@@ -1,2 +1,2 @@
 # TesauroRex
-Projeto de Compiladores
+Projeto de Compiladores feito utilizando o SableCC.
