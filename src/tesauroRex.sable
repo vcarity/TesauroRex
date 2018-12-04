@@ -24,9 +24,16 @@ nl = '\n';
 cr = '\r';
 apostrophe = ''';
 ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
-
+digit = ['0' .. '9'];
+number = digit+;
+dot = '.';
+boolean = '0' | '1';
+binary = 'b' boolean+;
+decimal = 'd' number+;
 
 Tokens
 
 identifier = letter+ ( letter+ | underscore )+;
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal;
