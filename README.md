@@ -1,0 +1,2 @@
+# TesauroRex
+Projeto de Compiladores
