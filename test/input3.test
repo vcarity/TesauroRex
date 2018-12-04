@@ -1,0 +1,14 @@
+{Tesauro Rex 3}
+code TRtrue
+
+start
+
+integer i;
+integer j;
+
+i := b0;
+j := b1;
+
+as long as ( j ) do start show b1 finish
+
+finish
