@@ -1,18 +1,22 @@
-/* tesauroRex.sable - A very simple program that recognizes two integers being added. */
 Package tesauroRex ;
-    
+
 Helpers
-    /* Our helpers */
-    digit = ['0' .. '9'] ;
-    sp = ' ' ;
-    nl = 10 ;
+  digito = ['0' .. '9'];
+  espaco = ' ';
+  rc = 13;
+  nl = 10;
  
 Tokens
-    /* Our simple token definition(s). */
-    integer = digit+ sp*;
-    plus = '+' sp*;
-    semi = ';' nl?;
- 
-Productions
-    /* Our super-simple grammar */
-    program = [left]:integer plus [right]:integer semi; 
+  number = digito+;
+  plus = '+';
+  minus = '-';
+  mult = '*';
+  div = '/';
+  mod = '%';
+  l_par = '(';
+  r_par = ')';
+  blank = (espaco | rc | nl)+;
+
+
+Ignored Tokens
+  blank;
