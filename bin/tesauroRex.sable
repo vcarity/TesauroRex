@@ -37,9 +37,9 @@ rbracket = ']';
 
 Tokens
 
-assign = '<-';
+assign = ':=';
 
-end = ';'*;
+end = ';'*; /* */
 plus = '+';
 minus = '-';
 mult = '*';
@@ -54,11 +54,11 @@ r_par = ')';
 
 start = 'start';
 finish = 'finish';
-identifier = letter ( letter+ | underscore )*;
+identifier = letter ( letter+ | underscore )*; /* */
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
 integer = binary | decimal;
-array = ( ( ('symbol vector ') | ('real vector ') | ('integer vector ') ) (lbracket number* rbracket)+ (' ') ( letter ( letter+ | underscore )*) );
+array = ( ( ('symbol vector ') | ('real vector ') | ('integer vector ') ) (lbracket number* rbracket)+ (' ') ( letter ( letter+ | underscore )*) ); /* */
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
