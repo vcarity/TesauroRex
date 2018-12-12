@@ -3,6 +3,6 @@ code TR
 
 start
 
-teste = 15;
+teste := "isso ai";
 
 finish
