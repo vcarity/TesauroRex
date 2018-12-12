@@ -61,6 +61,8 @@ identifier = letter ( letter+ | underscore )*;
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
 integer = binary | decimal | number;
+var = identifier | identifier ( '[' number ']' )+;
+capture = l_par (var ',')* var r_par ';';
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
