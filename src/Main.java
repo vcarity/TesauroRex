@@ -8,7 +8,7 @@ public class Main {
 	  
     try {
 			
-      String arquivo = "test/input.test";
+      String arquivo = "test/input";
 	  Lexer lexer = new Lexer(new PushbackReader(new FileReader(arquivo), 1024)); 
 	  Token token;
 	  

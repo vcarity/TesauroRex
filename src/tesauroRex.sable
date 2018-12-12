@@ -4,6 +4,8 @@
 * TESAURO REX, RAWWWR!!
 * verificar gramática -> http://sablecc.sourceforge.net/grammars
 *
+* https://github.com/vcarity/TesauroRex
+*
 */
 
 Package tesauroRex;
@@ -38,8 +40,9 @@ rbracket = ']';
 Tokens
 
 assign = ':=';
+unalterable = '=';
 
-end = ';'*;
+end = ';';
 plus = '+';
 minus = '-';
 mult = '*';
@@ -47,7 +50,7 @@ div = '/';
 mod = '%';
 
 negation = '!';
-equal = '=';
+equal = '==';
 
 l_par = '(';
 r_par = ')';
@@ -57,8 +60,7 @@ finish = 'finish';
 identifier = letter ( letter+ | underscore )*;
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
-integer = binary | decimal;
-array = ( ( ('symbol vector ') | ('real vector ') | ('integer vector ') ) (lbracket number* rbracket)+ (' ') ( letter ( letter+ | underscore )*) );
+integer = binary | decimal | number;
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
