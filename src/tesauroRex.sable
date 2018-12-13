@@ -34,6 +34,12 @@ number = digit+;
 binary = 'b' boolean+;
 decimal = 'd' number+;
 
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
+
 Tokens
 
 start = 'start';
@@ -42,6 +48,10 @@ code = 'code';
 unalterable = 'unalterable';
 vector = 'vector';
 boolean = 'boolean';
+symbol = 'symbol' | symbol;
+real = 'real' | real;
+integer = 'integer' | integer;
+string = 'string' | string;
 in = 'in';
 case = 'case';
 that = 'that';
@@ -78,11 +88,6 @@ lbracket = '[';
 rbracket = ']';
 
 identifier = letter ( letter | underscore )*;
-symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
-real = number+ dot number+;
-integer = binary | decimal | number;
-string = quote ( ascii* | letter* | ' ' )* quote;
-
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );

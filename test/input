@@ -3,6 +3,6 @@ code TR
 
 start
 
-symbol := "isso ai";
+real := 0.10;
 
 finish
