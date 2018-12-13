@@ -50,6 +50,7 @@ long = 'long';
 considering = 'considering';
 capture = 'capture';
 show = 'show';
+comma = ',';
 
 assign = ':=';
 assign_unalterable = '=';
