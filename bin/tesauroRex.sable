@@ -71,19 +71,16 @@ and = 'and';
 or = 'or';
 xor = 'xor';
 
-
 l_par = '(';
 r_par = ')';
 lbracket = '[';
 rbracket = ']';
-
 
 identifier = letter ( letter | underscore )*;
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
 integer = binary | decimal | number;
 string = quote ( ascii* | letter* | ' ' )* quote;
-
 
 
 blank = ( ' ' | 13 | 10)+;
