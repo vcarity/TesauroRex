@@ -2,7 +2,9 @@
 * Projeto da Disciplina Compiladores 2018.2
 * Alunos: Gabriel Leite, Rafael Sena e Victor Carity
 * TESAURO REX, RAWWWR!!
-* verificar gramática -> http://sablecc.sourceforge.net/grammars
+* verificar gramática -> http://sablecc.org/grammars
+*
+* https://github.com/vcarity/TesauroRex
 *
 */
 
@@ -25,40 +27,67 @@ np = '\f';
 nl = '\n';
 cr = '\r';
 apostrophe = ''';
+quote = '"';
 ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
 boolean = '0' | '1';
 number = digit+;
 binary = 'b' boolean+;
 decimal = 'd' number+;
 
-
-lbracket = '[';
-rbracket = ']';
-
 Tokens
 
-assign = ':=';
+start = 'start';
+finish = 'finish';
+code = 'code';
+unalterable = 'unalterable';
+vector = 'vector';
+boolean = 'boolean';
+in = 'in';
+case = 'case';
+that = 'that';
+as = 'as';
+long = 'long';
+considering = 'considering';
+capture = 'capture';
+show = 'show';
+comma = ',';
 
-end = ';'*;
+assign = ':=';
+assign_unalterable = '=';
+
+end = ';';
 plus = '+';
 minus = '-';
 mult = '*';
 div = '/';
 mod = '%';
-
-negation = '!';
-equal = '=';
+equal = '==';
+negation = '!=';
+leq = '<=';
+beq = '>=';
+le = '<';
+bg = '>';
+not = '!';
+and = 'and';
+or = 'or';
+xor = 'xor';
 
 l_par = '(';
 r_par = ')';
+lbracket = '[';
+rbracket = ']';
+
 
 start = 'start';
 finish = 'finish';
-// identifier = letter ( letter+ | underscore )*;
+
+identifier = letter ( letter | underscore )*;
+
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
-integer = binary | decimal;
-array = ( ( ('symbol vector ') | ('real vector ') | ('integer vector ') ) (lbracket number* rbracket)+ (' ') ( letter ( letter+ | underscore )*) );
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
