@@ -52,6 +52,29 @@ capture = 'capture';
 show = 'show';
 comma = ',';
 
+/*
+
+Nao tinha no meu lexico, estou acrescentando agora no sintatico:
+
+*/
+
+inttype = 'integer';
+realtype = 'real';
+symboltype = 'symbol';
+
+from = 'from';
+to = 'to';
+by = 'by';
+do = 'do';
+else = 'else';
+
+
+/* 
+
+Final do que era pra ter feito no lexico
+
+*/
+
 assign = ':=';
 assign_unalterable = '=';
 
@@ -77,7 +100,9 @@ r_par = ')';
 lbracket = '[';
 rbracket = ']';
 
+
 identifier = letter ( letter | underscore )*;
+
 symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
 real = number+ dot number+;
 integer = binary | decimal | number;
@@ -87,7 +112,124 @@ string = quote ( ascii* | letter* | ' ' )* quote;
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
 
+
+
 Ignored Tokens
 
 blank,
 comment;
+
+
+Productions
+
+ programa = code identifier bloco;
+ 
+ bloco = start declaracao* comando* finish;
+ 
+ declaracao = {variavel} tipo ids* identifier end
+ 			| {constant} unalterable tipo identifier unalt_aux end;
+ 
+ ids = identifier comma;
+ 
+ unalt_aux = equals valor;
+ 
+ tipo =  {base} tipo_base
+ 		|{vetor} vector vecdim+;
+ 		
+ 
+ tipo_base = {int} inttype 
+ 			|{real} realtype 
+ 			|{symbol} symboltype; 
+ 
+ unalt = {id} identifier
+   |{vetor} identifier vecdim+; 
+ 
+ comando =  {bloco} bloco
+ 		   |{var_atr} variavel assign bits end
+ 		   |{cap} capture l_par cap_aux* variavel r_par end
+ 		   |{show} show l_par show_aux* bits r_par end
+ 		   |{considering} considering variavel from bits to expr by numero do comando
+ 		   |{as_long} as long_as l_par bits r_par do comando
+ 		   |{in_case} in case that l_par bits r_par do comando ;
+ 		   /*|{in_case_else} in case that l_par bits r_par do comando else_aux;*/
+
+/*
+
+Conflitos encontrados nao resolvidos:
+
+atribuição de variaveis e constantes, presentes em comando
+in case that com e sem o else
+
+*/
+
+ 		   
+ cap_aux = variavel comma;
+ show_aux = bits comma;
+ else_aux = else comando;
+ 
+ long_as = long as;		   
+
+ bits = 
+  {equals} equals
+ |{and} bits and equals
+ |{or} bits or equals
+ |{xor} bits xor equals;
+
+
+ equals =
+  {rel} rel
+ |{equal} equals equal rel
+ |{negation} equals negation rel;
+
+ rel =
+  {expr} expr 
+ |{le} rel le expr
+ |{leq} rel leq expr
+ |{bg} rel bg expr
+ |{beq} rel beq expr;
+
+expr =
+   {fator} fator 
+  |{soma} expr plus fator 
+  |{menos} expr minus fator;
+
+ fator =
+   {termo} termo 
+  |{mult} fator mult termo 
+  |{div} fator div termo 
+  |{mod} fator mod termo;
+
+ termo =
+ {pos} numero
+ |{neg} minus numero
+ |{not} not numero;
+
+ numero =
+   {valor} valor
+  |{variavel} variavel
+  |{par} l_par expr r_par;
+  
+  valor =
+   {sym} symbol
+   | {int} integer
+   | {real} real
+   | {string} string;  
+   
+   variavel =
+   {id} identifier
+   |{vetor} identifier vecdim+; 
+  
+  vecdim = lbracket expr rbracket ;
+  
+/*
+
+Referencias para as precedencias de operadores:
+
+http://www.inf.ufpr.br/danielw/grad/ci067/20092/op-prec.html
+
+https://pt.wikipedia.org/wiki/Operadores_em_C_e_C%2B%2B
+
+*/
+
+
+
