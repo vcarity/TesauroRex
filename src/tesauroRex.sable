@@ -131,7 +131,7 @@ Productions
  
  ids = identifier comma;
  
- unalt_aux = equals valor;
+ unalt_aux = assign_unalterable valor;
  
  tipo =  {base} tipo_base
  		|{vetor} tipo_base vector vecdim+;

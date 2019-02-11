@@ -1,5 +1,3 @@
-/bin/tesauroRex/analysis/
-/bin/tesauroRex/lexer/
-/bin/tesauroRex/node/
-/bin/tesauroRex/parser/
-/bin/
+
+bin/
+src/tesauroRex
