@@ -15,9 +15,9 @@ symbol symbolA;
 symbol symbolB;
 symbol symbolC;
 
-integer vector [][] vectorA;
-real vector [][] vectorB;
-symbol vector [][] vectorC;
+integer vector [3][5] vectorA;
+real vector [4][6] vectorB;
+symbol vector [2][5] vectorC;
 
 integerA := d1;
 integerB := d10;
@@ -35,7 +35,7 @@ integerA := integerB + integerC;
 integerA := integerB - integerC;
 integerA := integerB * integerC;
 integerA := integerB / integerC;
-integerA := integerB = integerC;
+integerA := integerB == integerC;
 integerA := integerB != integerC;
 
 realA := realB + realC;
