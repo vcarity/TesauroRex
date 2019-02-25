@@ -44,4 +44,8 @@ realA := realB * realC;
 realA := realB / realC;
 realA := (realB * realC) - realC;
 
+in case that (3 > 3) do capture(abc); else show(4);
+
+
+
 finish

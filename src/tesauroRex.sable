@@ -143,26 +143,8 @@ Productions
  
  unalt = {id} identifier
    |{vetor} identifier vecdim+; 
- 
- comando =  {bloco} bloco
- 		   |{var_atr} variavel assign bits end
- 		   |{cap} capture l_par cap_aux* variavel r_par end
- 		   |{show} show l_par show_aux* bits r_par end
- 		   |{considering} considering variavel from bits to expr by numero do comando
- 		   |{as_long} as long_as l_par bits r_par do comando
- 		   |{in_case} in case that l_par bits r_par do comando ;
- 		   /*|{in_case_else} in case that l_par bits r_par do comando else_aux;*/
-
-/*
-
-Conflitos encontrados nao resolvidos:
-
-atribui��o de variaveis e constantes, presentes em comando
-in case that com e sem o else
-
-*/
-
- 		   
+   
+   
  cap_aux = variavel comma;
  show_aux = bits comma;
  else_aux = else comando;
@@ -188,7 +170,7 @@ in case that com e sem o else
  |{bg} rel bg expr
  |{beq} rel beq expr;
 
-expr =
+ expr =
    {fator} fator 
   |{soma} expr plus fator 
   |{menos} expr minus fator;
@@ -219,7 +201,35 @@ expr =
    {id} identifier
    |{vetor} identifier vecdim+; 
   
-  vecdim = lbracket expr rbracket ;
+  vecdim = lbracket expr rbracket;
+
+ comando =  {aberto} comando_com_else | {fechado} comando_sem_else; 
+ 
+ comando_com_else = {comando} outro
+ 	| {else} in case that l_par bits r_par do [left]:comando_com_else else [right]:comando_com_else
+ 	|{considering} considering variavel from bits to expr by numero do comando_com_else
+	|{as_long} as long_as l_par bits r_par do comando_com_else;
+ 
+ comando_sem_else = {comandos} in case that l_par bits r_par do comando
+ 	| {else} in case that l_par bits r_par do [right]:comando_com_else else [left]:comando_sem_else
+ 	|{considering} considering variavel from bits to expr by numero do comando_sem_else
+	|{as_long} as long_as l_par bits r_par do comando_sem_else;
+ 
+ outro = {bloco} bloco
+ 		   |{var_atr} variavel assign bits end
+ 		   |{unalt} unalt assign_unalterable bits end 
+ 		   |{cap} capture l_par cap_aux* variavel r_par end
+ 		   |{show} show l_par show_aux* bits r_par end;
+
+/*
+Conflitos encontrados nao resolvidos:
+
+atribui��o de variaveis e constantes, presentes em comando
+in case that com e sem o else
+
+*/
+
+
   
 /*
 

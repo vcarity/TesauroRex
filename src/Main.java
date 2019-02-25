@@ -10,7 +10,7 @@ public class Main
  {
   try
   {
-   String arquivo = "test/fibo.tesr";
+   String arquivo = "test/input.test";
   
    Parser p =
     new Parser(
