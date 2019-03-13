@@ -1,0 +1,314 @@
+/*
+* Projeto da Disciplina Compiladores 2018.2
+* Alunos: Gabriel Leite, Rafael Sena e Victor Carity
+* TESAURO REX, RAWWWR!!
+* verificar gramática -> http://sablecc.org/grammars
+*
+* https://github.com/vcarity/TesauroRex
+*
+*/
+
+Package tesauroRex;
+
+Helpers
+
+digit = ['0' .. '9'];
+lowercase = ['a' .. 'z'];
+uppercase = ['A' .. 'Z'];
+underscore = '_';
+dot = '.';
+letter = lowercase | uppercase;
+ascii = [0 .. 0xff];
+nul = '\0';
+bel = '\a';
+bs = '\b';
+ht = '\t';
+np = '\f';
+nl = '\n';
+cr = '\r';
+apostrophe = ''';
+quote = '"';
+ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
+boolean = '0' | '1';
+number = digit+;
+binary = 'b' boolean+;
+decimal = 'd' number+;
+
+Tokens
+
+start = 'start';
+finish = 'finish';
+code = 'code';
+unalterable = 'unalterable';
+vector = 'vector';
+boolean = 'boolean';
+in = 'in';
+case = 'case';
+that = 'that';
+as = 'as';
+long = 'long';
+considering = 'considering';
+capture = 'capture';
+show = 'show';
+comma = ',';
+
+/*
+
+Nao tinha no meu lexico, estou acrescentando agora no sintatico:
+
+*/
+
+inttype = 'integer';
+realtype = 'real';
+symboltype = 'symbol';
+
+from = 'from';
+to = 'to';
+by = 'by';
+do = 'do';
+else = 'else';
+
+
+/* 
+
+Final do que era pra ter feito no lexico
+
+*/
+
+assign = ':=';
+assign_unalterable = '=';
+
+end = ';';
+plus = '+';
+minus = '-';
+mult = '*';
+div = '/';
+mod = '%';
+equal = '==';
+not_equal = '!=';
+leq = '<=';
+beq = '>=';
+le = '<';
+bg = '>';
+not = '!';
+and = 'and';
+or = 'or';
+xor = 'xor';
+
+l_par = '(';
+r_par = ')';
+lbracket = '[';
+rbracket = ']';
+
+
+identifier = letter ( letter | underscore )*;
+
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
+
+blank = ( ' ' | 13 | 10)+;
+comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
+
+
+
+Ignored Tokens
+
+blank,
+comment;
+
+
+Productions
+
+
+ programa {-> programa} = code identifier bloco {-> New programa.corpo( identifier, bloco)  };
+ 
+ bloco {-> bloco} = start declaracao* comando* finish {-> New bloco.bloco(start, [declaracao], [comando], finish)  };
+ 
+ declaracao = {variavel} tipo ids* identifier end
+ 			| {constant} unalterable tipo identifier unalt_aux end;
+ 
+ ids = identifier comma;
+ 
+ unalt_aux = assign_unalterable valor;
+ 
+ tipo =  {base} tipo_base
+ 		|{vetor} tipo_base vector vecdim+;
+ 
+ tipo_base = {int} inttype 
+ 			|{real} realtype 
+ 			|{symbol} symboltype; 
+ 
+ unalt = {id} identifier
+   |{vetor} identifier vecdim+; 
+
+ cap_aux = variavel comma;
+ show_aux = expr comma;
+ else_aux = else comando;
+ 
+ expr {-> expr} = 
+  {equals} equals	 									{-> equals.expr}
+ |{and} [left]:expr and [right]:equals 					{-> New expr.and(left.expr, right.expr)}
+ |{or} [left]:expr or [right]:equals					{-> New expr.or(left.expr, right.expr)}
+ |{xor} [left]:expr xor [right]:equals					{-> New expr.xor(left.expr, right.expr)}
+ ;
+
+
+ equals {-> expr } =
+  {rel} rel												{-> rel.expr}
+ |{equal} [left]:equals equal [right]:rel				{-> New expr.equal(left.expr, right.expr)}
+ |{not_equal} [left]:equals not_equal [right]:rel			{-> New expr.not_equal(left.expr, right.expr)}
+ ;
+
+ rel {-> expr} =
+  {expr} expr 											{-> expr.expr}
+ |{le} [left]:rel le [right]:expr						{-> New expr.le(left.expr, right.expr)}
+ |{leq} [left]:rel leq [right]:expr						{-> New expr.leq(left.expr, right.expr)}
+ |{bg} [left]:rel bg [right]:expr						{-> New expr.bg(left.expr, right.expr)}
+ |{beq} [left]:rel beq [right]:expr						{-> New expr.beq(left.expr, right.expr)}
+ ;
+
+ exp {-> expr} =
+   {fator} fator {-> fator.expr}
+  |{soma} [left]:expr plus [right]:fator {-> New expr.add(left.expr, right.expr) } 
+  |{menos} [left]:expr minus [right]:fator {-> New expr.minus(left.expr, right.expr) } ;
+
+ fator {-> expr} =
+   {termo} termo  {-> termo.expr}
+  |{mult} [left]:fator mult [right]:termo {-> New expr.mult(left.expr, right.expr) } 
+  |{div} [left]:fator div [right]:termo {-> New expr.div(left.expr, right.expr) }
+  |{mod} [left]:fator mod [right]:termo {-> New expr.mod(left.expr, right.expr) };
+
+ termo {-> expr} =
+ {pos} numero {-> numero.expr}
+ |{neg} minus numero {-> New expr.negative(numero.expr) }
+ |{not} not numero {-> New expr.not(numero.expr) };
+
+ numero {-> expr} =
+   {valor} valor {-> New expr.valor(valor)}
+  |{variavel} variavel {-> New expr.variavel (variavel)}
+  |{par} l_par expr r_par {-> expr.expr};
+  
+  valor {-> valor} =
+   {sym} symbol {-> New valor.sym(symbol)}
+   | {int} integer {-> New valor.int(integer)}
+   | {real} real {-> New valor.real(real)}
+   | {string} string {-> New valor.string(string)};  
+   
+   variavel =
+   {id} identifier {-> New variavel.nome(identifier)}
+   |{vetor} identifier vecdim+ {-> New variavel.vetor(identifier, [vecdim])}; 
+  
+  vecdim = lbracket expr rbracket;
+  
+  comando =  {aberto} comando_com_else | {fechado} comando_sem_else; 
+ 
+  comando_com_else = {comando} outro
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_com_else
+ 	|{considering} considering variavel from [left]:expr to [right]:expr by [other]:expr do comando_com_else
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_com_else;
+ 
+  comando_sem_else = {comandos} in case that l_par expr r_par do comando
+ 	| {else} in case that l_par expr r_par do [right]:comando_com_else else [left]:comando_sem_else
+ 	|{considering} considering variavel from [left]:expr to [right]:expr by [other]:expr do comando_sem_else
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_sem_else;
+ 
+  outro = {bloco} bloco
+ 	|{var_atr} variavel assign expr end
+ 	|{unalt} unalt assign_unalterable expr end 
+ 	|{cap} capture l_par cap_aux* variavel r_par end
+    |{show} show l_par show_aux* expr r_par end;
+  
+
+ 
+Abstract Syntax Tree
+
+ programa = {corpo} identifier bloco;
+ 
+ bloco = {bloco} start declaracao* comando* finish;
+
+ declaracao = {variavel} tipo ids* identifier end
+ 			| {constant} unalterable tipo identifier unalt_aux end;
+ 			
+ ids = identifier comma;
+ 
+ tipo =  {base} tipo_base
+ 		|{vetor} tipo_base vector vecdim+;
+ 		
+ tipo_base = {int} inttype 
+ 			|{real} realtype 
+ 			|{symbol} symboltype;
+ 		
+ unalt_aux = assign_unalterable valor;
+
+ expr = {add} [left]:expr [right]:expr
+ 	| {minus} [left]:expr [right]:expr
+ 	| {div} [left]:expr [right]:expr
+ 	| {mult} [left]:expr [right]:expr
+ 	| {mod} [left]:expr [right]:expr
+ 	| {negative} [right]:expr 
+ 	| {not} [right]:expr
+ 	| {valor} valor |
+ 	 {le} [left]:expr 			[right]:expr | 
+     {leq} [left]:expr 			[right]:expr | 
+     {bg} [left]:expr    		[right]:expr | 
+     {beq} [left]:expr 			[right]:expr |
+ 	 {and} [left]:expr			[right]:expr | 
+     {or} [left]:expr     		[right]:expr | 
+     {xor} [left]:expr 			[right]:expr |
+     {equal} [left]:expr 		[right]:expr |
+     {not_equal} [left]:expr 	[right]:expr |
+    | {variavel} variavel
+    ;
+ 	
+ valor =
+   {sym} symbol
+   | {int} integer
+   | {real} real
+   | {string} string;
+   
+  variavel =
+   {nome} identifier |
+   {vetor} identifier vecdim+;
+   
+  vecdim = lbracket expr rbracket;
+  
+  comando =  {aberto} comando_com_else | {fechado} comando_sem_else; 
+ 
+  comando_com_else = {comando} outro
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_com_else
+ 	|{considering} considering variavel from [left]:expr to [right]:expr by [center]:expr do comando_com_else
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_com_else;
+ 
+  comando_sem_else = {comandos} in case that l_par expr r_par do comando
+ 	| {else} in case that l_par expr r_par do [right]:comando_com_else else [left]:comando_sem_else
+ 	|{considering} considering variavel from [left]:expr to [right]:expr by [center]:expr do comando_sem_else
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_sem_else;
+ 
+  outro = {bloco} bloco
+ 	|{var_atr} variavel assign expr end
+ 	|{unalt} unalt assign_unalterable expr end 
+ 	|{cap} capture l_par cap_aux* variavel r_par end
+    |{show} show l_par show_aux* expr r_par end;
+ 
+   
+   unalt = {id} identifier
+   |{vetor} identifier vecdim+; 
+   
+    cap_aux = variavel comma;
+ 	show_aux = expr comma; 
+   
+/*
+
+Referencias para as precedencias de operadores:
+
+http://www.inf.ufpr.br/danielw/grad/ci067/20092/op-prec.html
+
+https://pt.wikipedia.org/wiki/Operadores_em_C_e_C%2B%2B
+
+*/
+
+
+

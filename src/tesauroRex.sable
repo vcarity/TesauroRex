@@ -122,20 +122,19 @@ comment;
 
 Productions
 
- programa = code identifier bloco;
+ programa {-> programa} = code identifier bloco {-> New programa(identifier, bloco)};
  
- bloco = start declaracao* comando* finish;
+ bloco {-> bloco}= start declaracao* comando* finish {-> New bloco([declaracao], [comando])};
  
- declaracao = {variavel} tipo ids* identifier end
- 			| {constant} unalterable tipo identifier unalt_aux end;
+ declaracao {-> declaracao} = {variavel} tipo ids end {-> New declaracao.variable(tipo, [ids.identifier])}
+ 			| {const} unalterable tipo identifier assign_unalterable valor end {-> New declaracao.const(tipo, identifier, valor)};
  
- ids = identifier comma;
+ ids {-> T.identifier*  } =
+      {identificador} T.identifier {-> [T.identifier]}
+     |{identificadores} T.identifier T.comma [resto]:P.ids {-> [T.identifier, resto.identifier]};
  
- unalt_aux = assign_unalterable valor;
- 
- tipo =  {base} tipo_base
- 		|{vetor} tipo_base vector vecdim+;
- 		
+ tipo {-> tipo} =  {base} tipo_base {-> New tipo.base(tipo_base)} 
+ 		|{vetor} tipo_base vector [dim]:vecdim+ {-> New tipo.vetor(tipo_base, [dim.expr])} ; 		
  
  tipo_base = {int} inttype 
  			|{real} realtype 
@@ -144,93 +143,143 @@ Productions
  unalt = {id} identifier
    |{vetor} identifier vecdim+; 
    
-   
- cap_aux = variavel comma;
- show_aux = bits comma;
- else_aux = else comando;
+ exprs {-> expr*} =
+ 	 {expressao} P.expr {-> [P.expr]}
+ 	|{expressoes} P.expr comma [resto]:exprs {-> [P.expr, resto.expr]};
+
+ expr {-> expr} = 
+  {equals} equals {-> equals.expr}
+ |{and} [left]:expr and [right]:equals {-> New expr.and(left.expr, right.expr)}
+ |{or} [left]:expr or [right]:equals {-> New expr.or(left.expr, right.expr)}
+ |{xor} [left]:expr xor [right]:equals {-> New expr.xor(left.expr, right.expr)};
  
- long_as = long as;		   
+ equals {-> expr } =
+  {rel} rel												{-> rel.expr}
+ |{equal} [left]:equals equal [right]:rel				{-> New expr.equal(left.expr, right.expr)}
+ |{negation} [left]:equals negation [right]:rel			{-> New expr.negation(left.expr, right.expr)};
 
- bits = 
-  {equals} equals
- |{and} bits and equals
- |{or} bits or equals
- |{xor} bits xor equals;
+ rel {-> expr} =
+  {expr} exp 											{-> exp.expr}
+ |{le} [left]:rel le [right]:exp						{-> New expr.le(left.expr, right.expr)}
+ |{leq} [left]:rel leq [right]:exp						{-> New expr.leq(left.expr, right.expr)}
+ |{bg} [left]:rel bg [right]:exp						{-> New expr.bg(left.expr, right.expr)}
+ |{beq} [left]:rel beq [right]:exp						{-> New expr.beq(left.expr, right.expr)};
+ 
+ exp {-> expr} =
+   {fator} fator {-> fator.expr}
+  |{soma} [left]:exp plus [right]:fator {-> New expr.add(left.expr, right.expr) } 
+  |{menos} [left]:exp minus [right]:fator {-> New expr.minus(left.expr, right.expr) } ;
 
+ fator {-> expr} =
+   {termo} termo  {-> termo.expr}
+  |{mult} [left]:fator mult [right]:termo {-> New expr.mult(left.expr, right.expr) } 
+  |{div} [left]:fator div [right]:termo {-> New expr.div(left.expr, right.expr) }
+  |{mod} [left]:fator mod [right]:termo {-> New expr.mod(left.expr, right.expr) };
 
- equals =
-  {rel} rel
- |{equal} equals equal rel
- |{negation} equals negation rel;
+ termo {-> expr} =
+ {pos} numero {-> numero.expr}
+ |{neg} minus numero {-> New expr.negative(numero.expr) }
+ |{not} not numero {-> New expr.not(numero.expr) };
 
- rel =
-  {expr} expr 
- |{le} rel le expr
- |{leq} rel leq expr
- |{bg} rel bg expr
- |{beq} rel beq expr;
-
- expr =
-   {fator} fator 
-  |{soma} expr plus fator 
-  |{menos} expr minus fator;
-
- fator =
-   {termo} termo 
-  |{mult} fator mult termo 
-  |{div} fator div termo 
-  |{mod} fator mod termo;
-
- termo =
- {pos} numero
- |{neg} minus numero
- |{not} not numero;
-
- numero =
-   {valor} valor
-  |{variavel} variavel
-  |{par} l_par expr r_par;
+ numero {-> expr} =
+   {valor} valor {-> New expr.valor(valor)}
+  |{variavel} variavel {-> New expr.variavel(variavel)}
+  |{par} l_par expr r_par {-> expr};
   
-  valor =
+ valor {-> valor} =
+   {sym} symbol {-> New valor.sym(symbol)}
+   | {int} integer {-> New valor.int(integer)}
+   | {real} real {-> New valor.real(real)}
+   | {string} string {-> New valor.string(string)};  
+   
+ variaveis {-> P.variavel*  } =
+      {variavel} P.variavel {-> [P.variavel.variavel]  }
+     |{variaveis} P.variavel T.comma P.variaveis {-> [P.variavel.variavel , P.variaveis.variavel]};
+   
+ variavel {-> variavel}=
+   {id} identifier {-> New variavel.nome(identifier)}
+   |{vetor} identifier [dim]:vecdim+ {-> New variavel.vetor(identifier, [dim.expr])};
+  
+ vecdim {-> expr} = lbracket expr rbracket {-> expr};
+
+ comando {-> comando} =  {aberto} comando_com_else {-> comando_com_else.comando} 
+ 			|{fechado} comando_sem_else {-> comando_sem_else.comando}; 
+ 
+ comando_com_else {-> comando} = {comando} outro {-> outro.comando}
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_com_else {-> New comando.if_else(expr, left.comando, right.comando)}
+ 	|{considering} considering variavel from [left]:expr to [center]:expr by [right]:expr do comando_com_else {-> New comando.for(variavel, left.expr, center.expr, right.expr, comando_com_else.comando)}
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_com_else {-> New comando.while(expr, comando_com_else.comando)};
+ 
+ comando_sem_else {-> comando}= {comandos} in case that l_par expr r_par do comando {-> New comando.if(expr, comando)}
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_sem_else {-> New comando.if_else(expr, left.comando, right.comando)}
+ 	|{considering} considering variavel from [left]:expr to [center]:expr by [right]:expr do comando_sem_else {-> New comando.for(variavel, left.expr, center.expr, right.expr, comando_sem_else.comando)}
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_sem_else {-> New comando.while(expr, comando_sem_else.comando)};
+ 
+ outro {-> comando} = {bloco} bloco {-> New comando.bloco(bloco)}
+ 		   |{var_atr} variavel assign expr end {-> New comando.atribuicao(variavel, expr)}
+ 		   |{unalt} unalt assign_unalterable expr end {-> New comando.unalt(expr)}
+ 		   |{cap} capture l_par variaveis r_par end {-> New comando.capture([variaveis.variavel])}
+ 		   |{show} show l_par exprs r_par end {-> New comando.show([exprs.expr])};
+
+Abstract Syntax Tree
+
+ programa = [id]:T.identifier P.bloco;
+ 
+ bloco = declaracao* comando*;
+ 
+ declaracao = {variable} P.tipo identifier+ | 
+ 			 {const} P.tipo T.identifier valor;
+ 
+ comando = {atribuicao} P.variavel P.expr
+ 		   |{unalt} expr
+ 		   |{capture} variavel*
+ 		   |{show} expr*
+ 		   |{bloco} bloco
+ 		   |{if} expr comando
+ 		   |{if_else} expr [left]:comando [right]:comando
+ 		   |{for} variavel [left]:expr [center]:expr [right]:expr comando
+ 		   |{while} expr comando;
+ 
+ 
+ tipo =  {base} tipo_base
+ 		|{vetor} tipo_base expr+;
+ 
+ tipo_base = {int} inttype 
+ 			|{real} realtype 
+ 			|{symbol} symboltype;
+ 
+ expr = {add} [left]:expr [right]:expr
+ 	| {minus} [left]:expr [right]:expr
+ 	| {div} [left]:expr [right]:expr
+ 	| {mult} [left]:expr [right]:expr
+ 	| {mod} [left]:expr [right]:expr
+ 	| {negative} [right]:expr 
+ 	| {not} [right]:expr
+ 	| {valor} valor
+    | {variavel} variavel
+    | {and} [left]:expr 			[right]:expr | 
+    {or} [left]:expr			[right]:expr | 
+    {xor} [left]:expr 			[right]:expr |
+    {equal} [left]:expr 		[right]:expr | 
+    {negation} [left]:expr 	[right]:expr |
+    {le} [left]:expr 			[right]:expr | 
+    {leq} [left]:expr 			[right]:expr | 
+    {bg} [left]:expr 			[right]:expr | 
+    {beq} [left]:expr 			[right]:expr |;
+ 	
+ valor =
    {sym} symbol
    | {int} integer
    | {real} real
-   | {string} string;  
+   | {string} string;
    
-   variavel =
-   {id} identifier
-   |{vetor} identifier vecdim+; 
-  
+  variavel =
+   {nome} identifier |
+   {vetor} identifier expr*;
+   
   vecdim = lbracket expr rbracket;
-
- comando =  {aberto} comando_com_else | {fechado} comando_sem_else; 
  
- comando_com_else = {comando} outro
- 	| {else} in case that l_par bits r_par do [left]:comando_com_else else [right]:comando_com_else
- 	|{considering} considering variavel from bits to expr by numero do comando_com_else
-	|{as_long} as long_as l_par bits r_par do comando_com_else;
- 
- comando_sem_else = {comandos} in case that l_par bits r_par do comando
- 	| {else} in case that l_par bits r_par do [right]:comando_com_else else [left]:comando_sem_else
- 	|{considering} considering variavel from bits to expr by numero do comando_sem_else
-	|{as_long} as long_as l_par bits r_par do comando_sem_else;
- 
- outro = {bloco} bloco
- 		   |{var_atr} variavel assign bits end
- 		   |{unalt} unalt assign_unalterable bits end 
- 		   |{cap} capture l_par cap_aux* variavel r_par end
- 		   |{show} show l_par show_aux* bits r_par end;
-
-/*
-Conflitos encontrados nao resolvidos:
-
-atribui��o de variaveis e constantes, presentes em comando
-in case that com e sem o else
-
-*/
-
-
-  
+   
 /*
 
 Referencias para as precedencias de operadores:

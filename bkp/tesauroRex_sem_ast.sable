@@ -1,0 +1,237 @@
+/*
+* Projeto da Disciplina Compiladores 2018.2
+* Alunos: Gabriel Leite, Rafael Sena e Victor Carity
+* TESAURO REX, RAWWWR!!
+* verificar gramática -> http://sablecc.org/grammars
+*
+* https://github.com/vcarity/TesauroRex
+*
+*/
+
+Package tesauroRex;
+
+Helpers
+
+digit = ['0' .. '9'];
+lowercase = ['a' .. 'z'];
+uppercase = ['A' .. 'Z'];
+underscore = '_';
+dot = '.';
+letter = lowercase | uppercase;
+ascii = [0 .. 0xff];
+nul = '\0';
+bel = '\a';
+bs = '\b';
+ht = '\t';
+np = '\f';
+nl = '\n';
+cr = '\r';
+apostrophe = ''';
+quote = '"';
+ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
+boolean = '0' | '1';
+number = digit+;
+binary = 'b' boolean+;
+decimal = 'd' number+;
+
+Tokens
+
+start = 'start';
+finish = 'finish';
+code = 'code';
+unalterable = 'unalterable';
+vector = 'vector';
+boolean = 'boolean';
+in = 'in';
+case = 'case';
+that = 'that';
+as = 'as';
+long = 'long';
+considering = 'considering';
+capture = 'capture';
+show = 'show';
+comma = ',';
+
+/*
+
+Nao tinha no meu lexico, estou acrescentando agora no sintatico:
+
+*/
+
+inttype = 'integer';
+realtype = 'real';
+symboltype = 'symbol';
+
+from = 'from';
+to = 'to';
+by = 'by';
+do = 'do';
+else = 'else';
+
+
+/* 
+
+Final do que era pra ter feito no lexico
+
+*/
+
+assign = ':=';
+assign_unalterable = '=';
+
+end = ';';
+plus = '+';
+minus = '-';
+mult = '*';
+div = '/';
+mod = '%';
+equal = '==';
+negation = '!=';
+leq = '<=';
+beq = '>=';
+le = '<';
+bg = '>';
+not = '!';
+and = 'and';
+or = 'or';
+xor = 'xor';
+
+l_par = '(';
+r_par = ')';
+lbracket = '[';
+rbracket = ']';
+
+
+identifier = letter ( letter | underscore )*;
+
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
+
+blank = ( ' ' | 13 | 10)+;
+comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
+
+
+
+Ignored Tokens
+
+blank,
+comment;
+
+
+Productions
+
+ programa = code identifier bloco;
+ 
+ bloco = start declaracao* comando* finish;
+ 
+ declaracao = {variavel} tipo ids* identifier end
+ 			| {constant} unalterable tipo identifier unalt_aux end;
+ 
+ ids = identifier comma;
+ 
+ unalt_aux = assign_unalterable valor;
+ 
+ tipo =  {base} tipo_base
+ 		|{vetor} tipo_base vector vecdim+;
+ 		
+ 
+ tipo_base = {int} inttype 
+ 			|{real} realtype 
+ 			|{symbol} symboltype; 
+ 
+ unalt = {id} identifier
+   |{vetor} identifier vecdim+; 
+   
+   
+ cap_aux = variavel comma;
+ show_aux = bits comma;
+ else_aux = else comando;
+ 
+ long_as = long as;		   
+
+ bits = 
+  {equals} equals
+ |{and} bits and equals
+ |{or} bits or equals
+ |{xor} bits xor equals;
+
+
+ equals =
+  {rel} rel
+ |{equal} equals equal rel
+ |{negation} equals negation rel;
+
+ rel =
+  {expr} expr 
+ |{le} rel le expr
+ |{leq} rel leq expr
+ |{bg} rel bg expr
+ |{beq} rel beq expr;
+
+ expr  =
+   {fator} fator 
+  |{soma} [left]:expr plus [right]:fator 
+  |{menos} [left]:expr minus [right]:fator;
+
+ fator =
+   {termo} termo 
+  |{mult} [left]:fator mult [right]:termo 
+  |{div} [left]:fator div [right]:termo 
+  |{mod} [left]:fator mod [right]:termo ;
+
+ termo =
+ {pos} numero 
+ |{neg} minus numero
+ |{not} not numero;
+
+ numero =
+   {valor} valor
+  |{variavel} variavel
+  |{par} l_par expr r_par;
+  
+  valor =
+   {sym} symbol
+   | {int} integer
+   | {real} real 
+   | {string} string;  
+   
+   variavel =
+   {id} identifier
+   |{vetor} identifier vecdim+; 
+  
+  vecdim = lbracket expr rbracket;
+
+ comando =  {aberto} comando_com_else | {fechado} comando_sem_else; 
+ 
+ comando_com_else = {comando} outro
+ 	| {else} in case that l_par bits r_par do [left]:comando_com_else else [right]:comando_com_else
+ 	|{considering} considering variavel from bits to expr by numero do comando_com_else
+	|{as_long} [left]:as long [right]:as l_par bits r_par do comando_com_else;
+ 
+ comando_sem_else = {comandos} in case that l_par bits r_par do comando
+ 	| {else} in case that l_par bits r_par do [right]:comando_com_else else [left]:comando_sem_else
+ 	|{considering} considering variavel from bits to expr by numero do comando_sem_else
+	|{as_long} [left]:as long [right]:as l_par bits r_par do comando_sem_else;
+ 
+ outro = {bloco} bloco
+ 		   |{var_atr} variavel assign bits end
+ 		   |{unalt} unalt assign_unalterable bits end 
+ 		   |{cap} capture l_par cap_aux* variavel r_par end
+ 		   |{show} show l_par show_aux* bits r_par end;
+
+
+  
+/*
+
+Referencias para as precedencias de operadores:
+
+http://www.inf.ufpr.br/danielw/grad/ci067/20092/op-prec.html
+
+https://pt.wikipedia.org/wiki/Operadores_em_C_e_C%2B%2B
+
+*/
+
+
+
