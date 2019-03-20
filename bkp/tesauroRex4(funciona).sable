@@ -1,0 +1,196 @@
+/*
+* Projeto da Disciplina Compiladores 2018.2
+* Alunos: Gabriel Leite, Rafael Sena e Victor Carity
+* TESAURO REX, RAWWWR!!
+* verificar gramática -> http://sablecc.org/grammars
+*
+* https://github.com/vcarity/TesauroRex
+*
+*/
+
+Package tesauroRex;
+
+Helpers
+
+digit = ['0' .. '9'];
+lowercase = ['a' .. 'z'];
+uppercase = ['A' .. 'Z'];
+underscore = '_';
+dot = '.';
+letter = lowercase | uppercase;
+ascii = [0 .. 0xff];
+nul = '\0';
+bel = '\a';
+bs = '\b';
+ht = '\t';
+np = '\f';
+nl = '\n';
+cr = '\r';
+apostrophe = ''';
+quote = '"';
+ascii_table = ascii | nul | bel | bs | ht | np | nl | cr ;
+boolean = '0' | '1';
+number = digit+;
+binary = 'b' boolean+;
+decimal = 'd' number+;
+
+Tokens
+
+start = 'start';
+finish = 'finish';
+code = 'code';
+unalterable = 'unalterable';
+vector = 'vector';
+boolean = 'boolean';
+in = 'in';
+case = 'case';
+that = 'that';
+as = 'as';
+long = 'long';
+considering = 'considering';
+capture = 'capture';
+show = 'show';
+comma = ',';
+
+/*
+
+Nao tinha no meu lexico, estou acrescentando agora no sintatico:
+
+*/
+
+inttype = 'integer';
+realtype = 'real';
+symboltype = 'symbol';
+
+from = 'from';
+to = 'to';
+by = 'by';
+do = 'do';
+else = 'else';
+
+
+/* 
+
+Final do que era pra ter feito no lexico
+
+*/
+
+assign = ':=';
+assign_unalterable = '=';
+
+end = ';';
+plus = '+';
+minus = '-';
+mult = '*';
+div = '/';
+mod = '%';
+equal = '==';
+negation = '!=';
+leq = '<=';
+beq = '>=';
+le = '<';
+bg = '>';
+not = '!';
+and = 'and';
+or = 'or';
+xor = 'xor';
+
+l_par = '(';
+r_par = ')';
+lbracket = '[';
+rbracket = ']';
+
+
+identifier = letter ( letter | underscore )*;
+
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
+
+blank = ( ' ' | 13 | 10)+;
+comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
+
+
+
+Ignored Tokens
+
+blank,
+comment;
+
+
+Productions
+
+
+ expr {-> expr} =
+   {fator} fator {-> fator.expr}
+  |{soma} [left]:expr plus [right]:fator {-> New expr.add(left.expr, right.expr) } 
+  |{menos} [left]:expr minus [right]:fator {-> New expr.minus(left.expr, right.expr) } ;
+
+ fator {-> expr} =
+   {termo} termo  {-> termo.expr}
+  |{mult} [left]:fator mult [right]:termo {-> New expr.mult(left.expr, right.expr) } 
+  |{div} [left]:fator div [right]:termo {-> New expr.div(left.expr, right.expr) }
+  |{mod} [left]:fator mod [right]:termo {-> New expr.mod(left.expr, right.expr) };
+
+ termo {-> expr} =
+ {pos} numero {-> numero.expr}
+ |{neg} minus numero {-> New expr.negative(numero.expr) }
+ |{not} not numero {-> New expr.not(numero.expr) };
+
+ numero {-> expr} =
+   {valor} valor {-> New expr.valor(valor)}
+  |{variavel} variavel {-> New expr.variavel(variavel)}
+  |{par} l_par expr r_par {-> expr};
+  
+  valor {-> valor} =
+   {sym} symbol {-> New valor.sym(symbol)}
+   | {int} integer {-> New valor.int(integer)}
+   | {real} real {-> New valor.real(real)}
+   | {string} string {-> New valor.string(string)};  
+   
+   variavel =
+   {id} identifier {-> New variavel.nome(identifier)}
+   |{vetor} identifier vecdim+ {-> New variavel.vetor(identifier, [vecdim])}; 
+  
+  vecdim = lbracket expr rbracket;
+
+ 
+Abstract Syntax Tree
+
+ expr = {add} [left]:expr [right]:expr
+ 	| {minus} [left]:expr [right]:expr
+ 	| {div} [left]:expr [right]:expr
+ 	| {mult} [left]:expr [right]:expr
+ 	| {mod} [left]:expr [right]:expr
+ 	| {negative} [right]:expr 
+ 	| {not} [right]:expr
+ 	| {valor} valor
+    | {variavel} variavel;
+ 	
+ valor =
+   {sym} symbol
+   | {int} integer
+   | {real} real
+   | {string} string;
+   
+  variavel =
+   {nome} identifier |
+   {vetor} identifier vecdim+;
+   
+  vecdim = lbracket expr rbracket;
+ 
+   
+/*
+
+Referencias para as precedencias de operadores:
+
+http://www.inf.ufpr.br/danielw/grad/ci067/20092/op-prec.html
+
+https://pt.wikipedia.org/wiki/Operadores_em_C_e_C%2B%2B
+
+*/
+
+
+

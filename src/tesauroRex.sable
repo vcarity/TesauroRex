@@ -34,13 +34,46 @@ number = digit+;
 binary = 'b' boolean+;
 decimal = 'd' number+;
 
-symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
-real = number+ dot number+;
-integer = binary | decimal | number;
-string = quote ( ascii* | letter* | ' ' )* quote;
-
-
 Tokens
+
+start = 'start';
+finish = 'finish';
+code = 'code';
+unalterable = 'unalterable';
+vector = 'vector';
+boolean = 'boolean';
+in = 'in';
+case = 'case';
+that = 'that';
+as = 'as';
+long = 'long';
+considering = 'considering';
+capture = 'capture';
+show = 'show';
+comma = ',';
+
+/*
+
+Nao tinha no meu lexico, estou acrescentando agora no sintatico:
+
+*/
+
+inttype = 'integer';
+realtype = 'real';
+symboltype = 'symbol';
+
+from = 'from';
+to = 'to';
+by = 'by';
+do = 'do';
+else = 'else';
+
+
+/*
+
+Final do que era pra ter feito no lexico
+
+*/
 
 start = 'start';
 finish = 'finish';
@@ -87,12 +120,192 @@ r_par = ')';
 lbracket = '[';
 rbracket = ']';
 
+
 identifier = letter ( letter | underscore )*;
+
+symbol = ( apostrophe ascii_table apostrophe ) | ( apostrophe apostrophe );
+real = number+ dot number+;
+integer = binary | decimal | number;
+string = quote ( ascii* | letter* | ' ' )* quote;
+
 
 blank = ( ' ' | 13 | 10)+;
 comment = ( '{' ( ascii* | letter* | ' ' ) '}' );
+
+
 
 Ignored Tokens
 
 blank,
 comment;
+
+
+Productions
+
+ programa {-> programa} = code identifier bloco {-> New programa(identifier, bloco)};
+
+ bloco {-> bloco}= start declaracao* comando* finish {-> New bloco([declaracao], [comando])};
+
+ declaracao {-> declaracao} = {variavel} tipo ids end {-> New declaracao.variable(tipo, [ids.identifier])}
+ 			| {const} unalterable tipo identifier assign_unalterable valor end {-> New declaracao.const(tipo, identifier, valor)};
+
+ ids {-> T.identifier*  } =
+      {identificador} T.identifier {-> [T.identifier]}
+     |{identificadores} T.identifier T.comma [resto]:P.ids {-> [T.identifier, resto.identifier]};
+
+ tipo {-> tipo} =  {base} tipo_base {-> New tipo.base(tipo_base)}
+ 		|{vetor} tipo_base vector [dim]:vecdim+ {-> New tipo.vetor(tipo_base, [dim.expr])} ;
+
+ tipo_base = {int} inttype
+ 			|{real} realtype
+ 			|{symbol} symboltype;
+
+ unalt = {id} identifier
+   |{vetor} identifier vecdim+;
+
+ exprs {-> expr*} =
+ 	 {expressao} P.expr {-> [P.expr]}
+ 	|{expressoes} P.expr comma [resto]:exprs {-> [P.expr, resto.expr]};
+
+ expr {-> expr} =
+  {equals} equals {-> equals.expr}
+ |{and} [left]:expr and [right]:equals {-> New expr.and(left.expr, right.expr)}
+ |{or} [left]:expr or [right]:equals {-> New expr.or(left.expr, right.expr)}
+ |{xor} [left]:expr xor [right]:equals {-> New expr.xor(left.expr, right.expr)};
+
+ equals {-> expr } =
+  {rel} rel												{-> rel.expr}
+ |{equal} [left]:equals equal [right]:rel				{-> New expr.equal(left.expr, right.expr)}
+ |{negation} [left]:equals negation [right]:rel			{-> New expr.negation(left.expr, right.expr)};
+
+ rel {-> expr} =
+  {expr} exp 											{-> exp.expr}
+ |{le} [left]:rel le [right]:exp						{-> New expr.le(left.expr, right.expr)}
+ |{leq} [left]:rel leq [right]:exp						{-> New expr.leq(left.expr, right.expr)}
+ |{bg} [left]:rel bg [right]:exp						{-> New expr.bg(left.expr, right.expr)}
+ |{beq} [left]:rel beq [right]:exp						{-> New expr.beq(left.expr, right.expr)};
+
+ exp {-> expr} =
+   {fator} fator {-> fator.expr}
+  |{soma} [left]:exp plus [right]:fator {-> New expr.add(left.expr, right.expr) }
+  |{menos} [left]:exp minus [right]:fator {-> New expr.minus(left.expr, right.expr) } ;
+
+ fator {-> expr} =
+   {termo} termo  {-> termo.expr}
+  |{mult} [left]:fator mult [right]:termo {-> New expr.mult(left.expr, right.expr) }
+  |{div} [left]:fator div [right]:termo {-> New expr.div(left.expr, right.expr) }
+  |{mod} [left]:fator mod [right]:termo {-> New expr.mod(left.expr, right.expr) };
+
+ termo {-> expr} =
+ {pos} numero {-> numero.expr}
+ |{neg} minus numero {-> New expr.negative(numero.expr) }
+ |{not} not numero {-> New expr.not(numero.expr) };
+
+ numero {-> expr} =
+   {valor} valor {-> New expr.valor(valor)}
+  |{variavel} variavel {-> New expr.variavel(variavel)}
+  |{par} l_par expr r_par {-> expr};
+
+ valor {-> valor} =
+   {sym} symbol {-> New valor.sym(symbol)}
+   | {int} integer {-> New valor.int(integer)}
+   | {real} real {-> New valor.real(real)}
+   | {string} string {-> New valor.string(string)};
+
+ variaveis {-> P.variavel*  } =
+      {variavel} P.variavel {-> [P.variavel.variavel]  }
+     |{variaveis} P.variavel T.comma P.variaveis {-> [P.variavel.variavel , P.variaveis.variavel]};
+
+ variavel {-> variavel}=
+   {id} identifier {-> New variavel.nome(identifier)}
+   |{vetor} identifier [dim]:vecdim+ {-> New variavel.vetor(identifier, [dim.expr])};
+
+ vecdim {-> expr} = lbracket expr rbracket {-> expr};
+
+ comando {-> comando} =  {aberto} comando_com_else {-> comando_com_else.comando}
+ 			|{fechado} comando_sem_else {-> comando_sem_else.comando};
+
+ comando_com_else {-> comando} = {comando} outro {-> outro.comando}
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_com_else {-> New comando.if_else(expr, left.comando, right.comando)}
+ 	|{considering} considering variavel from [left]:expr to [center]:expr by [right]:expr do comando_com_else {-> New comando.for(variavel, left.expr, center.expr, right.expr, comando_com_else.comando)}
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_com_else {-> New comando.while(expr, comando_com_else.comando)};
+
+ comando_sem_else {-> comando}= {comandos} in case that l_par expr r_par do comando {-> New comando.if(expr, comando)}
+ 	| {else} in case that l_par expr r_par do [left]:comando_com_else else [right]:comando_sem_else {-> New comando.if_else(expr, left.comando, right.comando)}
+ 	|{considering} considering variavel from [left]:expr to [center]:expr by [right]:expr do comando_sem_else {-> New comando.for(variavel, left.expr, center.expr, right.expr, comando_sem_else.comando)}
+	|{as_long} [left]:as long [right]:as l_par expr r_par do comando_sem_else {-> New comando.while(expr, comando_sem_else.comando)};
+
+ outro {-> comando} = {bloco} bloco {-> New comando.bloco(bloco)}
+ 		   |{var_atr} variavel assign expr end {-> New comando.atribuicao(variavel, expr)}
+ 		   |{unalt} unalt assign_unalterable expr end {-> New comando.unalt(expr)}
+ 		   |{cap} capture l_par variaveis r_par end {-> New comando.capture([variaveis.variavel])}
+ 		   |{show} show l_par exprs r_par end {-> New comando.show([exprs.expr])};
+
+Abstract Syntax Tree
+
+ programa = [id]:T.identifier P.bloco;
+
+ bloco = declaracao* comando*;
+
+ declaracao = {variable} P.tipo identifier+ |
+ 			 {const} P.tipo T.identifier valor;
+
+ comando = {atribuicao} P.variavel P.expr
+ 		   |{unalt} expr
+ 		   |{capture} variavel*
+ 		   |{show} expr*
+ 		   |{bloco} bloco
+ 		   |{if} expr comando
+ 		   |{if_else} expr [left]:comando [right]:comando
+ 		   |{for} variavel [left]:expr [center]:expr [right]:expr comando
+ 		   |{while} expr comando;
+
+
+ tipo =  {base} tipo_base
+ 		|{vetor} tipo_base expr+;
+
+ tipo_base = {int} inttype
+ 			|{real} realtype
+ 			|{symbol} symboltype;
+
+ expr = {add} [left]:expr [right]:expr
+ 	| {minus} [left]:expr [right]:expr
+ 	| {div} [left]:expr [right]:expr
+ 	| {mult} [left]:expr [right]:expr
+ 	| {mod} [left]:expr [right]:expr
+ 	| {negative} [right]:expr
+ 	| {not} [right]:expr
+ 	| {valor} valor
+    | {variavel} variavel
+    | {and} [left]:expr 			[right]:expr |
+    {or} [left]:expr			[right]:expr |
+    {xor} [left]:expr 			[right]:expr |
+    {equal} [left]:expr 		[right]:expr |
+    {negation} [left]:expr 	[right]:expr |
+    {le} [left]:expr 			[right]:expr |
+    {leq} [left]:expr 			[right]:expr |
+    {bg} [left]:expr 			[right]:expr |
+    {beq} [left]:expr 			[right]:expr |;
+
+ valor =
+   {sym} symbol
+   | {int} integer
+   | {real} real
+   | {string} string;
+
+  variavel =
+   {nome} identifier |
+   {vetor} identifier expr*;
+
+  vecdim = lbracket expr rbracket;
+
+
+/*
+
+Referencias para as precedencias de operadores:
+
+http://www.inf.ufpr.br/danielw/grad/ci067/20092/op-prec.html
+
+https://pt.wikipedia.org/wiki/Operadores_em_C_e_C%2B%2B
+
+*/
