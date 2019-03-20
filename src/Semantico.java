@@ -28,6 +28,8 @@ public class Semantico extends DepthFirstAdapter {
 	 public void inAPrograma(APrograma node)
 	 {
 		 Hashtable tabelaDeSimbolos = new Hashtable();
+		 System.out.println(node.getId());
+		 tabelaDeSimbolos.put(node.getId(), NULL);
 		 pilha.push(tabelaDeSimbolos);
 		 System.out.println("inAPrograma");
 	 }
