@@ -5,7 +5,7 @@ import tesauroRex.node.*;
 public class Semantico extends DepthFirstAdapter {
 
 	// Hashtable tabelaDeSimbolos = new Hashtable();
-	// Stack pilha = new Stack();
+	// Stack pilha = new Stack
 	Stack pilha = new Stack();
 
 	@Override
@@ -27,18 +27,27 @@ public class Semantico extends DepthFirstAdapter {
 	 @Override
 	 public void inAPrograma(APrograma node)
 	 {
-		 Hashtable tabelaDeSimbolos = new Hashtable();
-		 System.out.println(node.getId());
-		 tabelaDeSimbolos.put(node.getId(), NULL);
-		 pilha.push(tabelaDeSimbolos);
 		 System.out.println("inAPrograma");
+		 if (pilha.empty()) {
+			 Hashtable tabelaDeSimbolos = new Hashtable();
+			 Simbolo simbolo = new Simbolo(node.getClass().getSimpleName().toString(), node.getId().toString());
+			 tabelaDeSimbolos.put(simbolo, simbolo.getHash());
+			 pilha.push(tabelaDeSimbolos);
+			 System.out.println(tabelaDeSimbolos);
+		 } else {
+			 System.out.println("-------------------------------------------------");
+			 System.out.println("Erro: Programa já declarado.");
+			 System.out.println("Análise Semântica Encerrada.");
+			 System.out.println("-------------------------------------------------");
+			 System.exit(0);
+		 }
 	 }
 
 	 @Override
 	 public void outAPrograma(APrograma node)
 	 {
-		 pilha.pop();
 		 System.out.println("outAPrograma");
+		 pilha.pop();
 	 }
 
 }
