@@ -22,6 +22,7 @@ public class Simbolo {
       i++;
     }
     setHash(temp);
+    System.out.println("fez hashCode");
     return temp;
   }
 

@@ -31,9 +31,10 @@ public class Semantico extends DepthFirstAdapter {
 		 if (pilha.empty()) {
 			 Hashtable tabelaDeSimbolos = new Hashtable();
 			 Simbolo simbolo = new Simbolo(node.getClass().getSimpleName().toString(), node.getId().toString());
-			 tabelaDeSimbolos.put(simbolo, simbolo.getHash());
+			 tabelaDeSimbolos.put("Programa", simbolo);
 			 pilha.push(tabelaDeSimbolos);
-			 System.out.println(tabelaDeSimbolos);
+			 //System.out.println(tabelaDeSimbolos);
+			 //System.out.println(tabelaDeSimbolos.get("Programa"));
 		 } else {
 			 System.out.println("-------------------------------------------------");
 			 System.out.println("Erro: Programa já declarado.");
@@ -48,6 +49,32 @@ public class Semantico extends DepthFirstAdapter {
 	 {
 		 System.out.println("outAPrograma");
 		 pilha.pop();
+	 }
+	 
+	 @Override
+	 public void inABloco(ABloco node)
+	 {
+		 System.out.println("inABloco");
+		 if (pilha.size() > 1) {
+			 Hashtable tabelaDeSimbolos = new Hashtable();
+			 pilha.push(tabelaDeSimbolos);
+		 }
+	 }
+	 
+	 @Override
+	 public void outABloco(ABloco node)
+	 {
+		 System.out.println("outABloco");
+		 if (pilha.size() > 1) {
+			 pilha.pop();
+		 }
+	 }
+	 
+	 @Override
+	 public void inAVariableDeclaracao(AVariableDeclaracao node)
+	 {
+		 System.out.println("inAVariableDeclaracao");
+		 defaultIn(node);
 	 }
 
 }
