@@ -7,6 +7,10 @@ public class Semantico extends DepthFirstAdapter {
 	// Hashtable tabelaDeSimbolos = new Hashtable();
 	// Stack pilha = new Stack
 	Stack pilha = new Stack();
+	
+	public Stack getPilha() {
+		return this.pilha;
+	}
 
 	@Override
 	public void inStart(Start node)
@@ -27,11 +31,10 @@ public class Semantico extends DepthFirstAdapter {
 	 @Override
 	 public void inAPrograma(APrograma node)
 	 {
-		 System.out.println("inAPrograma");
 		 if (pilha.empty()) {
 			 Hashtable tabelaDeSimbolos = new Hashtable();
-			 Simbolo simbolo = new Simbolo(node.getClass().getSimpleName().toString(), node.getId().toString());
-			 tabelaDeSimbolos.put("Programa", simbolo);
+			 Simbolo simbolo = new Simbolo(node.getId().toString(), node.getClass().getSimpleName().toString());
+			 tabelaDeSimbolos.put(simbolo.getId(), simbolo);
 			 pilha.push(tabelaDeSimbolos);
 			 //System.out.println(tabelaDeSimbolos);
 			 //System.out.println(tabelaDeSimbolos.get("Programa"));
@@ -47,14 +50,12 @@ public class Semantico extends DepthFirstAdapter {
 	 @Override
 	 public void outAPrograma(APrograma node)
 	 {
-		 System.out.println("outAPrograma");
 		 pilha.pop();
 	 }
 	 
 	 @Override
 	 public void inABloco(ABloco node)
 	 {
-		 System.out.println("inABloco");
 		 if (pilha.size() > 1) {
 			 Hashtable tabelaDeSimbolos = new Hashtable();
 			 pilha.push(tabelaDeSimbolos);
@@ -64,7 +65,6 @@ public class Semantico extends DepthFirstAdapter {
 	 @Override
 	 public void outABloco(ABloco node)
 	 {
-		 System.out.println("outABloco");
 		 if (pilha.size() > 1) {
 			 pilha.pop();
 		 }
@@ -73,8 +73,11 @@ public class Semantico extends DepthFirstAdapter {
 	 @Override
 	 public void inAVariableDeclaracao(AVariableDeclaracao node)
 	 {
-		 System.out.println("inAVariableDeclaracao");
-		 defaultIn(node);
+		 Simbolo simbolo = new Simbolo(node.getIdentifier().toString(), node.getClass().getSimpleName().toString());
+		 Hashtable tabelaDeSimbolos = (Hashtable) getPilha().peek();
+		 tabelaDeSimbolos.put(simbolo.getId(), simbolo);
+		 //System.out.println(getPilha().peek());
+		 //System.exit(0);
 	 }
 
 }
